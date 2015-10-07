@@ -6,7 +6,6 @@ import com.aziis98.dare.math.*;
 import com.aziis98.dare.util.*;
 
 import java.awt.*;
-import java.util.stream.*;
 
 public class FractalsApp extends ApplicationCore {
 
@@ -18,51 +17,35 @@ public class FractalsApp extends ApplicationCore {
         WindowData.width = 1000;
         WindowData.height = 800;
         WindowData.resizable = false;
+        WindowData.title = "Fractals";
 
+        // The fractal
+        FractalFunction theFractal = Fractals::fractalKoch;
 
         // Initial conditions
         EList<Vector2f> initials = new EList<>();
         {
-            initials.add( new Vector2f( -100F, 0F ).plus( WindowData.getCenter() ) );
-            initials.add( new Vector2f( +100F, 0F ).plus( WindowData.getCenter() ) );
+            initials.add( new Vector2f( -200F, 0F ).plus( WindowData.getCenter() ) );
+            initials.add( new Vector2f( +200F, 0F ).plus( WindowData.getCenter() ) );
         }
         iterations.add( initials );
 
-        EList<Vector2f> iteration;
-        for (int i = 0; i < 2; i++)
+        EList<Vector2f> iteration, prevIteration;
+        for (int i = 0; i < 5; i++)
         {
             iteration = new EList<>();
+            prevIteration = iterations.getLast();
 
-            for (int j = 1; j < iterations.getLast().size(); j++)
+            for (int j = 1; j < prevIteration.size(); j++)
             {
-                Vector2f a = iterations.getLast().get( j - 1 );
-                Vector2f b = iterations.getLast().get( j );
+                Vector2f a = prevIteration.get( j - 1 );
+                Vector2f b = prevIteration.get( j );
 
-                iteration.addAll( fractalKoch( a, b ).stream().collect( Collectors.toList() ) );
+                iteration.addAll( theFractal.iterate( a, b ) );
             }
 
             iterations.add( iteration );
         }
-    }
-
-    public EList<Vector2f> fractalKoch(Vector2f a, Vector2f b) {
-        // Construction Variables
-        Vector2f ab                     = b.minus( a );
-        float    equilateralThirdHeight = ab.scale( 1 / 3F ).length() * Maths.sqrt( 3 ) / 2;
-
-        EList<Vector2f> ziCurve = new EList<>();
-        {
-            ziCurve.add( a );
-            ziCurve.add( a.plus( ab.scale( 1 / 3F ) ) );
-
-            ziCurve.add(
-                    a.plus( ab.scale( 1 / 2F ) ).plus( ab.normalise().rotate( Maths.toRadians( 90F ) ).scale( equilateralThirdHeight ) )
-            );
-
-            ziCurve.add( a.plus( ab.scale( 2 / 3F ) ) );
-            ziCurve.add( b );
-        }
-        return ziCurve;
     }
 
     @Override
@@ -70,20 +53,34 @@ public class FractalsApp extends ApplicationCore {
 
     }
 
+    public static BasicStroke stroke2 = new BasicStroke( 1.3F, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL );
+
     @Override
     public void render(Graphics2D g) {
         g.setBackground( Color.WHITE );
         g.clearRect( 0, 0, WindowData.width, WindowData.height );
+        g.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
 
-        Color iter = Color.GREEN.brighter();
+        g.setColor( Color.BLACK );
+        g.setStroke( stroke2 );
+        Polyline.drawPolyline( g, iterations.getLast() );
+
+        /*
+        g.setStroke( stroke1 );
+        Color iter = Color.GREEN.darker();
 
         for (EList<Vector2f> iteration : iterations)
         {
             g.setColor( iter );
-            Polyline.drawPolyline( g, iteration );
+            // Polyline.drawPolyline( g, iteration );
 
-            iter = iter.darker();
+            iter = iter.brighter().brighter();
         }
+        */
+    }
+
+    public interface FractalFunction {
+        EList<Vector2f> iterate(Vector2f a, Vector2f b);
     }
 
     public static void main(String[] args) {
