@@ -2,14 +2,18 @@ package com.aziis98.fractals;
 
 import com.aziis98.dare.*;
 import com.aziis98.dare.SwingWindow.*;
+import com.aziis98.dare.inputs.*;
 import com.aziis98.dare.math.*;
+import com.aziis98.dare.rendering.*;
 import com.aziis98.dare.util.*;
 
 import java.awt.*;
+import java.awt.event.*;
 
 public class FractalsApp extends ApplicationCore {
 
     public EList<EList<Vector2f>> iterations = new EList<>();
+    public int currentIteration = 4;
 
     @Override
     public void init() {
@@ -23,15 +27,16 @@ public class FractalsApp extends ApplicationCore {
         FractalFunction theFractal = Fractals::fractalKoch;
 
         // Initial conditions
+        float focalDist = 300F;
         EList<Vector2f> initials = new EList<>();
         {
-            initials.add( new Vector2f( -200F, 0F ).plus( WindowData.getCenter() ) );
-            initials.add( new Vector2f( +200F, 0F ).plus( WindowData.getCenter() ) );
+            initials.add( new Vector2f( -focalDist, 0F ).plus( WindowData.getCenter() ) );
+            initials.add( new Vector2f( +focalDist, 0F ).plus( WindowData.getCenter() ) );
         }
         iterations.add( initials );
 
         EList<Vector2f> iteration, prevIteration;
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 6; i++)
         {
             iteration = new EList<>();
             prevIteration = iterations.getLast();
@@ -46,6 +51,15 @@ public class FractalsApp extends ApplicationCore {
 
             iterations.add( iteration );
         }
+
+
+        // Keycontrols
+        Keyboard.key( KeyEvent.VK_UP ).addChangeListner( value -> {
+            if ( value ) currentIteration++;
+        } );
+        Keyboard.key( KeyEvent.VK_DOWN ).addChangeListner( value -> {
+            if ( value ) currentIteration--;
+        } );
     }
 
     @Override
@@ -53,7 +67,7 @@ public class FractalsApp extends ApplicationCore {
 
     }
 
-    public static BasicStroke stroke2 = new BasicStroke( 1.3F, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL );
+    public static BasicStroke stroke2 = new BasicStroke( 1.3F, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_ROUND );
 
     @Override
     public void render(Graphics2D g) {
@@ -63,7 +77,17 @@ public class FractalsApp extends ApplicationCore {
 
         g.setColor( Color.BLACK );
         g.setStroke( stroke2 );
-        Polyline.drawPolyline( g, iterations.getLast() );
+
+        try
+        {
+            Polyline.drawPolyline( g, iterations.get( currentIteration ) );
+        }
+        catch (Exception e)
+        {
+            g.setColor( Color.RED );
+            G.drawLine( g, new Vector2f(), WindowData.getDimensions() );
+            G.drawLine( g, new Vector2f( 0, WindowData.getHeight() ), new Vector2f( WindowData.getWidth(), 0 ) );
+        }
 
         /*
         g.setStroke( stroke1 );
