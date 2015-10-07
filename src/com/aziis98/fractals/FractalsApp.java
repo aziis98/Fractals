@@ -12,8 +12,9 @@ import java.awt.event.*;
 
 public class FractalsApp extends ApplicationCore {
 
-    public EList<EList<Vector2f>> iterations = new EList<>();
-    public int currentIteration = 4;
+    public EList<EList<Vector2f>> iterations       = new EList<>();
+    public int                    currentIteration = 4;
+    public boolean                showShadow       = true;
 
     @Override
     public void init() {
@@ -36,8 +37,10 @@ public class FractalsApp extends ApplicationCore {
         iterations.add( initials );
 
         EList<Vector2f> iteration, prevIteration;
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < 10; i++)
         {
+            System.out.println( " Iteration n°" + (i + 1) );
+
             iteration = new EList<>();
             prevIteration = iterations.getLast();
 
@@ -55,10 +58,13 @@ public class FractalsApp extends ApplicationCore {
 
         // Keycontrols
         Keyboard.key( KeyEvent.VK_UP ).addChangeListner( value -> {
-            if ( value ) currentIteration++;
+            if ( value && iterations.size() > currentIteration + 1 ) currentIteration++;
         } );
         Keyboard.key( KeyEvent.VK_DOWN ).addChangeListner( value -> {
-            if ( value ) currentIteration--;
+            if ( value && currentIteration - 1 >= 0 ) currentIteration--;
+        } );
+        Keyboard.key( KeyEvent.VK_S ).addChangeListner( value -> {
+            if ( value ) showShadow ^= true;
         } );
     }
 
@@ -67,19 +73,29 @@ public class FractalsApp extends ApplicationCore {
 
     }
 
-    public static BasicStroke stroke2 = new BasicStroke( 1.3F, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_ROUND );
+    public static BasicStroke stroke2      = new BasicStroke( 1.3F, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_ROUND );
+    public static Color       outlineColor = new Color( 0xE7E7E7 );
 
     @Override
     public void render(Graphics2D g) {
         g.setBackground( Color.WHITE );
         g.clearRect( 0, 0, WindowData.width, WindowData.height );
         g.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
-
-        g.setColor( Color.BLACK );
         g.setStroke( stroke2 );
+
+        if ( showShadow )
+        {
+            g.setColor( outlineColor );
+
+            for (EList<Vector2f> iteration : iterations)
+            {
+                Polyline.drawPolyline( g, iteration );
+            }
+        }
 
         try
         {
+            g.setColor( Color.BLACK );
             Polyline.drawPolyline( g, iterations.get( currentIteration ) );
         }
         catch (Exception e)
@@ -89,18 +105,6 @@ public class FractalsApp extends ApplicationCore {
             G.drawLine( g, new Vector2f( 0, WindowData.getHeight() ), new Vector2f( WindowData.getWidth(), 0 ) );
         }
 
-        /*
-        g.setStroke( stroke1 );
-        Color iter = Color.GREEN.darker();
-
-        for (EList<Vector2f> iteration : iterations)
-        {
-            g.setColor( iter );
-            // Polyline.drawPolyline( g, iteration );
-
-            iter = iter.brighter().brighter();
-        }
-        */
     }
 
     public interface FractalFunction {
