@@ -5,6 +5,7 @@ import com.aziis98.dare.SwingWindow.*;
 import com.aziis98.dare.inputs.*;
 import com.aziis98.dare.math.*;
 import com.aziis98.dare.rendering.*;
+import com.aziis98.dare.system.*;
 import com.aziis98.dare.util.*;
 
 import java.awt.*;
@@ -37,9 +38,10 @@ public class FractalsApp extends ApplicationCore {
         iterations.add( initials );
 
         EList<Vector2f> iteration, prevIteration;
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 7; i++)
         {
-            System.out.println( " Iteration n°" + (i + 1) );
+            System.out.println( " Iteration #" + (i + 1) );
+            long stTime = Time.milliTime();
 
             iteration = new EList<>();
             prevIteration = iterations.getLast();
@@ -53,6 +55,8 @@ public class FractalsApp extends ApplicationCore {
             }
 
             iterations.add( iteration );
+
+            System.out.println( "   Duration: " + (Time.milliTime() - stTime) + "ms" );
         }
 
 
